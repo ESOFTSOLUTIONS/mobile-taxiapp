@@ -1,0 +1,12 @@
+{
+  "name": "taxi2000",
+  "displayName": "taxi2000",
+  "expo": {
+    "name": "taxi2000",
+    "slug": "taxi2000",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
