@@ -7,7 +7,7 @@ import * as Location from "expo-location";
 // actions
 import { callAPI } from "../actions/actions";
 
-const AppName = 'Taxi 2000';
+const AppName = 'Taxi 2020';
 const DeviceId = Device.deviceName;
 
 // const [location, setLocation] = useState(null);

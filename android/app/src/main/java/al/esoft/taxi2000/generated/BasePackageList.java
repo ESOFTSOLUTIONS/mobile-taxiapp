@@ -1,4 +1,4 @@
-package com.taxi2000.generated;
+package al.esoft.taxi2000.generated;
 
 import java.util.Arrays;
 import java.util.List;

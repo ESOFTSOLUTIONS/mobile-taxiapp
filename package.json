@@ -1,5 +1,4 @@
 {
-  "main": "index.js",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
@@ -8,6 +7,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "expo": "~38.0.9",
     "expo-device": "^2.2.1",
     "expo-location": "^8.3.0",
@@ -34,5 +34,7 @@
   "jest": {
     "preset": "react-native"
   },
-  "private": true
+  "private": true,
+  "name": "taxi2000",
+  "version": "1.0.0"
 }

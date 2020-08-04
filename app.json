@@ -7,6 +7,13 @@
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "android": {
+      "package": "al.esoft.taxi2000"
+    },
+    "ios": {
+      "bundleIdentifier": "al.esoft.taxi2000"
+    },
+    "entryPoint": "node_modules/expo/AppEntry.js"
   }
 }

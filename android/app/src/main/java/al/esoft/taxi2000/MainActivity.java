@@ -1,4 +1,4 @@
-package com.taxi2000;
+package al.esoft.taxi2000;
 
 import android.os.Bundle;
 

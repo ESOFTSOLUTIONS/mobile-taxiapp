@@ -35,12 +35,12 @@ android_library(
 
 android_build_config(
     name = "build_config",
-    package = "com.taxi2000",
+    package = "al.esoft.taxi2000",
 )
 
 android_resource(
     name = "res",
-    package = "com.taxi2000",
+    package = "al.esoft.taxi2000",
     res = "src/main/res",
 )
 
