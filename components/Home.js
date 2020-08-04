@@ -1,9 +1,11 @@
-import React, { Component, useEffect, useState } from "./node_modules/react";
+import React, { Component } from "react";
 import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
-import * as _ from './node_modules/lodash';
-import { callAPI } from '../actions/actions';
-import * as Device from "./node_modules/expo-device";
-import * as Location from './node_modules/expo-location';
+import * as _ from "lodash"
+import * as Device from "expo-device";
+import * as Location from "expo-location";
+
+// actions
+import { callAPI } from "../actions/actions";
 
 const AppName = 'Taxi 2000';
 const DeviceId = Device.deviceName;
