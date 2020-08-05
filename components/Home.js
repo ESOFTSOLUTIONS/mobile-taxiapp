@@ -3,77 +3,86 @@ import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
 import * as _ from "lodash"
 import * as Device from "expo-device";
 import * as Location from "expo-location";
+import * as TaskManager from 'expo-task-manager';
+import DeviceInfo from 'react-native-device-info';
 
 // actions
 import { callAPI } from "../actions/actions";
 
 const AppName = 'Taxi 2020';
 const DeviceId = Device.deviceName;
-
-// const [location, setLocation] = useState(null);
-// const [errorMsg, setErrorMsg] = useState(null);
+const LOCATION_TASK = 'background-location-driver';
 
 export default class Home extends Component {
+  constructor() {
+    super();
+    this.state = {
+      driverId: ''
+    }
+  }
 
-  // compareCurrentPositionWithPrevPosition = (pos1, pos2) => pos1.lat === pos2.lat && pos1.lng === pos2.lng;
-  lastDeviceData = {};
+  lastDeviceData = null;
+  locationSettings = {
+    accuracy: Location.Accuracy.Highest,
+    timeInterval: 10000,
+    distanceInterval: 30,
+    mayShowUserSettingsDialog: true
+  };
 
-  async loadLocation() {
-    (async () => {
-      let { status } = await Location.requestPermissionsAsync();
-      if (status !== 'granted') {
+  async loadLocation() {    
+    let response = await Location.getPermissionsAsync();
+    
+    if (!response.granted) {
+      let reqRes = await Location.requestPermissionsAsync();
+
+      if (!reqRes.granted) {
         setErrorMsg('Permission to access location was denied');
+        return;
       }
+    }
 
-      const deviceType = await Device.getDeviceTypeAsync();
-  
-      Location.watchPositionAsync({
-        accuracy: Location.Accuracy.Highest,
-        timeInterval: 10 * 1000,
-        distanceInterval: 30,
-        mayShowUserSettingsDialog: true
-      }, (data) => {
-        callAPI({
-          deviceId: DeviceId,
-          deviceName: `${Device.deviceName}`,
-          deviceBrand: `${Device.brand}`,
-          deviceType: deviceType,
-          lat: data.coords.latitude,
-          lng: data.coords.longitude,
-          accuracy: data.coords.accuracy,
-          speed: data.coords.speed,
-          offline: false
-        });
+    const deviceType = await Device.getDeviceTypeAsync();
 
-        this.lastDeviceData = Object.assign({}, {
-          deviceId: DeviceId,
-          deviceName: `${Device.deviceName}`,
-          deviceBrand: `${Device.brand}`,
-          deviceType: deviceType,
-          lat: data.coords.latitude,
-          lng: data.coords.longitude,
-          accuracy: data.coords.accuracy,
-          speed: data.coords.speed,
-          offline: false
-        });
+    const currentLocation = await Location.getCurrentPositionAsync(this.locationSettings);
+    const hasTask = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
 
-        console.log(data, ':: Device Location');
-      });
+    if (!hasTask) {
+      await Location.startLocationUpdatesAsync(LOCATION_TASK, this.locationSettings);
+    } else {
+      // await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+    }
+    
+    this.lastDeviceData = Object.assign({}, {
+      deviceId: DeviceId,
+      deviceName: `${Device.deviceName}`,
+      deviceBrand: `${Device.brand}`,
+      deviceType: deviceType,
+      lat: currentLocation.coords.latitude,
+      lng: currentLocation.coords.longitude,
+      accuracy: currentLocation.coords.accuracy,
+      speed: currentLocation.coords.speed,
+      offline: false,
+      background: false
+    });
+
+    // call api
+    callAPI(this.lastDeviceData);
+
+      
       // setLocation(location);
-    })();
   }
 
   componentDidMount() {
+    this.setState({
+      driverId: DeviceInfo.getUniqueId()
+    })
+    
     this.loadLocation();
   }
 
-  componentDidUpdate() {
-    this.loadLocation();
-
-    Location.hasServicesEnabledAsync()
-    .then(isOnline => {
-      console.log(isOnline, '::Device Status')
-      if (!isOnline) {
+  componentDidUpdate() {  
+    Location.hasServicesEnabledAsync().then(isOnline => {
+      if (!isOnline && this.lastDeviceData) {
         this.lastDeviceData.offline = true;
         callAPI(this.lastDeviceData);
       }
@@ -81,20 +90,11 @@ export default class Home extends Component {
   }
   
   _onBusyPress(data) {
-    const _data = {
-      deviceId: Device.deviceId,
-      location: {
-        lat: 1,
-        lng: 2
-      },
-      offline: true
-    };
-
-    callAPI(_data);
+    //
   }
 
   _onAvailPress(data) {
-    alert(2);
+    //
   }
 
   render() {
@@ -115,10 +115,45 @@ export default class Home extends Component {
           style={[styles.button, { backgroundColor: "#10ac84" }]}>
           <Text style={styles.buttonTitle}>Taxi e Lire</Text>
         </TouchableOpacity>
+
+        <View style={styles.driverInfo}>
+          <Text style={styles.driverInfoTxt}>Driver Id: </Text>
+          <Text>{this.state.driverId}</Text>
+        </View>
       </View>
     );
   }
 };
+
+TaskManager.defineTask(LOCATION_TASK, ({ data, error }) => {
+  if (error) {
+    // Error occurred - check `error.message` for more details.
+    console.log(error, 'TASK ERR');
+    return;
+  }
+  if (data) {
+    let { locations } = data;
+    console.log(locations, 'RESPONSE TASK');
+    // const deviceType = await Device.getDeviceTypeAsync();
+
+    for (const location of locations) {
+      callAPI({
+        driverId: DeviceInfo.getUniqueId(),
+        deviceId: DeviceId,
+        deviceName: `${Device.deviceName}`,
+        deviceBrand: `${Device.brand}`,
+        // deviceType: deviceType,
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+        accuracy: location.coords.accuracy,
+        speed: location.coords.speed,
+        offline: false,
+        background: true
+      });
+    }
+
+  }
+});
 
 const styles = StyleSheet.create({
   button: {
@@ -154,4 +189,16 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: "#8395a7",
   },
+  driverInfo: {
+    marginTop: 10,
+    color: "#8395a7",
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+  driverInfoTxt: {
+    color: "#8395a7",
+    fontSize: 18,
+    fontWeight: "bold",
+  }
 });

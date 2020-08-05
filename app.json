@@ -12,7 +12,13 @@
       "package": "al.esoft.taxi2000"
     },
     "ios": {
-      "bundleIdentifier": "al.esoft.taxi2000"
+      "bundleIdentifier": "al.esoft.taxi2000",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
+      }
     },
     "entryPoint": "node_modules/expo/AppEntry.js"
   }

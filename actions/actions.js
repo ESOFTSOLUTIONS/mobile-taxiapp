@@ -11,9 +11,9 @@ export const callAPI = (data) => {
     data
   })
   .then( response => {
-    console.log(response, '::Response from server');
+    // console.log(response, '::Response from server');
   })
   .catch(error => {
-    console.log(error, '::ERROR HTTP POST');
+    // console.log(error, '::ERROR HTTP POST');
   });
 }
