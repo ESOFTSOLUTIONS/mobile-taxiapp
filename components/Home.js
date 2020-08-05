@@ -16,7 +16,7 @@ const DeviceId = Device.deviceName;
 export default class Home extends Component {
 
   // compareCurrentPositionWithPrevPosition = (pos1, pos2) => pos1.lat === pos2.lat && pos1.lng === pos2.lng;
-  lastLocation = { lat: -1, lng: -1 };
+  lastDeviceData = {};
 
   async loadLocation() {
     (async () => {
@@ -45,10 +45,17 @@ export default class Home extends Component {
           offline: false
         });
 
-        this.lastLocation = {
+        this.lastDeviceData = Object.assign({}, {
+          deviceId: DeviceId,
+          deviceName: `${Device.deviceName}`,
+          deviceBrand: `${Device.brand}`,
+          deviceType: deviceType,
           lat: data.coords.latitude,
-          lng: data.coords.longitude
-        };
+          lng: data.coords.longitude,
+          accuracy: data.coords.accuracy,
+          speed: data.coords.speed,
+          offline: false
+        });
 
         console.log(data, ':: Device Location');
       });
@@ -67,13 +74,8 @@ export default class Home extends Component {
     .then(isOnline => {
       console.log(isOnline, '::Device Status')
       if (!isOnline) {
-        callAPI({
-          deviceId: Device.deviceId,
-          deviceType: Device.DeviceType,
-          lat: this.lastLocation.lat,
-          lng: this.lastLocation.lng,
-          offline: !isOnline
-        });
+        this.lastDeviceData.offline = true;
+        callAPI(this.lastDeviceData);
       }
     })
   }
