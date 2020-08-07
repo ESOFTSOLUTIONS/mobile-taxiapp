@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Text, View, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
 import * as _ from "lodash"
 import * as Device from "expo-device";
 import * as Location from "expo-location";
@@ -9,6 +9,7 @@ import DeviceInfo from 'react-native-device-info';
 // actions
 import { callAPI } from "../actions/actions";
 
+const AppLogo = require('~/../../assets/img/logo.png');
 const AppName = 'Taxi 2020';
 const DeviceId = Device.deviceName;
 const LOCATION_TASK = 'background-location-driver';
@@ -17,7 +18,8 @@ export default class Home extends Component {
   constructor() {
     super();
     this.state = {
-      driverId: ''
+      driverId: '',
+      location: { latitude: 0, longitude: 0 }
     }
   }
 
@@ -25,9 +27,32 @@ export default class Home extends Component {
   locationSettings = {
     accuracy: Location.Accuracy.Highest,
     timeInterval: 10000,
-    distanceInterval: 30,
+    distanceInterval: 10, // 10 meters distance
     mayShowUserSettingsDialog: true
   };
+
+  async watchLocation() {
+    const currentLocation = await Location.watchPositionAsync(this.locationSettings);
+
+    // store current location
+    this.setState({ location: currentLocation.coords });
+    
+    this.lastDeviceData = Object.assign({}, {
+      deviceId: DeviceId,
+      deviceName: `${Device.deviceName}`,
+      deviceBrand: `${Device.brand}`,
+      deviceType: deviceType,
+      lat: currentLocation.coords.latitude,
+      lng: currentLocation.coords.longitude,
+      accuracy: currentLocation.coords.accuracy,
+      speed: currentLocation.coords.speed,
+      offline: false,
+      background: false
+    });
+
+    // call api
+    callAPI(this.lastDeviceData);
+  }
 
   async loadLocation() {    
     let response = await Location.getPermissionsAsync();
@@ -44,6 +69,8 @@ export default class Home extends Component {
     const deviceType = await Device.getDeviceTypeAsync();
 
     const currentLocation = await Location.getCurrentPositionAsync(this.locationSettings);
+    this.setState({ location: currentLocation.coords });
+
     const hasTask = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
 
     if (!hasTask) {
@@ -76,11 +103,18 @@ export default class Home extends Component {
     this.setState({
       driverId: DeviceInfo.getUniqueId()
     })
+
+    // enable network to correct location
+    Location.enableNetworkProviderAsync().then(() => {
+      this.loadLocation();
+    })
+    .catch()
     
-    this.loadLocation();
   }
 
   componentDidUpdate() {  
+    this.loadLocation();
+
     Location.hasServicesEnabledAsync().then(isOnline => {
       if (!isOnline && this.lastDeviceData) {
         this.lastDeviceData.offline = true;
@@ -100,8 +134,8 @@ export default class Home extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>{ AppName }</Text>
-        <TouchableOpacity
+        <Image style={styles.appLogo} source={AppLogo}></Image>
+        {/* <TouchableOpacity
           onPress={ ($event) => this._onBusyPress($event) }
           style={[
             styles.button,
@@ -114,11 +148,17 @@ export default class Home extends Component {
           onPress={ ($event) => { this._onAvailPress($event) } }
           style={[styles.button, { backgroundColor: "#10ac84" }]}>
           <Text style={styles.buttonTitle}>Taxi e Lire</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.driverInfo}>
           <Text style={styles.driverInfoTxt}>Driver Id: </Text>
           <Text>{this.state.driverId}</Text>
+          <Text style={styles.driverInfoTxt}>
+              Location: (lat, lng)
+          </Text>
+          <Text style={styles.driverInfoTxt}>
+            {this.state.location.latitude}, {this.state.location.longitude}
+          </Text>
         </View>
       </View>
     );
@@ -200,5 +240,9 @@ const styles = StyleSheet.create({
     color: "#8395a7",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  appLogo: {
+    width: 200
   }
+  
 });

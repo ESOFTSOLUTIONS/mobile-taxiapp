@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "440561615524",
+    "firebase_url": "https://merr-taxi.firebaseio.com",
+    "project_id": "merr-taxi",
+    "storage_bucket": "merr-taxi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440561615524:android:a2199caf5354e6b80cdc31",
+        "android_client_info": {
+          "package_name": "al.esoft.taxi2000"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "440561615524-pjlapgrl9m6c9oi3oodl0l4f240fbt9b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbNHj0vbWAiKo87YNd9B27qHSru9YAo5I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "440561615524-pjlapgrl9m6c9oi3oodl0l4f240fbt9b.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "440561615524-dkf1chafp1g6uiokq3b5pv78s5kr2ru5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "al.esoft.taxi2000"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
