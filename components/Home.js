@@ -15,29 +15,84 @@ const DeviceId = Device.deviceName;
 const LOCATION_TASK = 'background-location-driver';
 
 export default class Home extends Component {
+  lastTime = +new Date();
+
   constructor() {
     super();
+    const initTime = +new Date();
     this.state = {
       driverId: '',
-      location: { latitude: 0, longitude: 0 }
+      location: { latitude: 0, longitude: 0 },
+      fetchTime: initTime,
+      deviceOnline: true
     }
   }
 
   lastDeviceData = null;
+
   locationSettings = {
-    accuracy: Location.Accuracy.Highest,
+    accuracy: Location.Accuracy.BestForNavigation,
     timeInterval: 10000,
-    distanceInterval: 10, // 10 meters distance
-    mayShowUserSettingsDialog: true
+    distanceInterval: 5, // 10 meters distance
   };
 
-  async watchLocation() {
-    const currentLocation = await Location.watchPositionAsync(this.locationSettings);
 
-    // store current location
-    this.setState({ location: currentLocation.coords });
+  componentDidMount() {
+    // get current device id
+    this.setState({ driverId: DeviceInfo.getUniqueId() });
+
+    this.askPermissions().then(() => {
+      this.getLocation();
+
+      // enable network to correct location
+      Location.enableNetworkProviderAsync().then(() => {
+        this.setState({ deviceOnline: true });
+        this.watchLocation();
+      })
+      .catch(err => {
+        alert(JSON.stringify(err));
+      })    
+    });
+
+    Location.hasServicesEnabledAsync().then(isOnline => {
+      if (!isOnline && this.lastDeviceData) {
+        this.setState({ deviceOnline: false });
+        callAPI(this.lastDeviceData);
+      }
+    })
+  }
+
+  async watchLocation() {
+    Location.watchPositionAsync(this.locationSettings, async (currentLocation) => {
+      // get current location
+      this.lastDeviceData = await this.getLastDeviceData(currentLocation)
+      
+      // call api
+      callAPI(this.lastDeviceData);
+    });
+
+  }
+
+  async getLocation() {    
+    const hasTask = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
+
+    if (!hasTask) {
+      await Location.startLocationUpdatesAsync(LOCATION_TASK, this.locationSettings);
+    }    
+  }
+
+  async getLastDeviceData(currentLocation) {
+    const deviceType = await Device.getDeviceTypeAsync();
     
-    this.lastDeviceData = Object.assign({}, {
+    const prevState = {...this.state};
+    
+    // store current location
+    this.setState({ location: currentLocation.coords, fetchTime: +new Date() });
+    
+    const offline = this._checkPreviousLocTime(prevState);
+
+    return Promise.resolve({... {
+      driverId: DeviceInfo.getUniqueId(),
       deviceId: DeviceId,
       deviceName: `${Device.deviceName}`,
       deviceBrand: `${Device.brand}`,
@@ -46,15 +101,14 @@ export default class Home extends Component {
       lng: currentLocation.coords.longitude,
       accuracy: currentLocation.coords.accuracy,
       speed: currentLocation.coords.speed,
-      offline: false,
-      background: false
-    });
-
-    // call api
-    callAPI(this.lastDeviceData);
+      offline,
+      background: false,
+      fetchTime: +new Date() // timestamp
+    }});
   }
 
-  async loadLocation() {    
+  async askPermissions() {
+    // ask for permissions
     let response = await Location.getPermissionsAsync();
     
     if (!response.granted) {
@@ -65,62 +119,6 @@ export default class Home extends Component {
         return;
       }
     }
-
-    const deviceType = await Device.getDeviceTypeAsync();
-
-    const currentLocation = await Location.getCurrentPositionAsync(this.locationSettings);
-    this.setState({ location: currentLocation.coords });
-
-    const hasTask = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
-
-    if (!hasTask) {
-      await Location.startLocationUpdatesAsync(LOCATION_TASK, this.locationSettings);
-    } else {
-      // await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-    }
-    
-    this.lastDeviceData = Object.assign({}, {
-      deviceId: DeviceId,
-      deviceName: `${Device.deviceName}`,
-      deviceBrand: `${Device.brand}`,
-      deviceType: deviceType,
-      lat: currentLocation.coords.latitude,
-      lng: currentLocation.coords.longitude,
-      accuracy: currentLocation.coords.accuracy,
-      speed: currentLocation.coords.speed,
-      offline: false,
-      background: false
-    });
-
-    // call api
-    callAPI(this.lastDeviceData);
-
-      
-      // setLocation(location);
-  }
-
-  componentDidMount() {
-    this.setState({
-      driverId: DeviceInfo.getUniqueId()
-    })
-
-    // enable network to correct location
-    Location.enableNetworkProviderAsync().then(() => {
-      this.loadLocation();
-    })
-    .catch()
-    
-  }
-
-  componentDidUpdate() {  
-    this.loadLocation();
-
-    Location.hasServicesEnabledAsync().then(isOnline => {
-      if (!isOnline && this.lastDeviceData) {
-        this.lastDeviceData.offline = true;
-        callAPI(this.lastDeviceData);
-      }
-    })
   }
   
   _onBusyPress(data) {
@@ -129,6 +127,32 @@ export default class Home extends Component {
 
   _onAvailPress(data) {
     //
+  }
+
+  _checkPreviousLocTime(prevState) {
+    const decimalLen = 8;
+    const currLat = String(this.state.location.latitude).substring(0, decimalLen);
+    const prevLat = String(prevState.location.latitude).substring(0, decimalLen);
+  
+    const currLng = String(this.state.location.longitude).substring(0, decimalLen);
+    const prevLng = String(prevState.location.longitude).substring(0, decimalLen);
+
+    const timeDiff = this.state.fetchTime - this.lastTime;
+    
+    let offline = false;
+  
+    if (currLat === prevLat && currLng === prevLng) {
+      offline = true;
+      if (timeDiff > 60) {
+        this.setState({ deviceOnline: false });
+      }
+    } else if (!this.state.deviceOnline) {
+      offline = false;
+      this.setState({ deviceOnline: true });
+      this.lastTime = +new Date();
+    }
+
+    return offline;
   }
 
   render() {
@@ -165,7 +189,7 @@ export default class Home extends Component {
   }
 };
 
-TaskManager.defineTask(LOCATION_TASK, ({ data, error }) => {
+TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   if (error) {
     // Error occurred - check `error.message` for more details.
     console.log(error, 'TASK ERR');
@@ -173,25 +197,13 @@ TaskManager.defineTask(LOCATION_TASK, ({ data, error }) => {
   }
   if (data) {
     let { locations } = data;
-    console.log(locations, 'RESPONSE TASK');
-    // const deviceType = await Device.getDeviceTypeAsync();
 
-    for (const location of locations) {
-      callAPI({
-        driverId: DeviceInfo.getUniqueId(),
-        deviceId: DeviceId,
-        deviceName: `${Device.deviceName}`,
-        deviceBrand: `${Device.brand}`,
-        // deviceType: deviceType,
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
-        accuracy: location.coords.accuracy,
-        speed: location.coords.speed,
-        offline: false,
-        background: true
-      });
-    }
-
+    const home = new Home();
+    // get current location
+     home.getLastDeviceData(locations[locations.length - 1]).then(lastDeviceData => {
+      lastDeviceData['background'] = true;
+      callAPI(lastDeviceData);
+    });
   }
 });
 
