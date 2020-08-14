@@ -201,8 +201,10 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     const home = new Home();
     // get current location
      home.getLastDeviceData(locations[locations.length - 1]).then(lastDeviceData => {
-      lastDeviceData['background'] = true;
-      callAPI(lastDeviceData);
+       if (lastDeviceData) {
+         lastDeviceData['background'] = true;
+         callAPI(lastDeviceData);
+       }
     });
   }
 });

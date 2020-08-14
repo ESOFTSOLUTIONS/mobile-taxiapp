@@ -63,5 +63,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>al.e-soft.taxi2000</string>
+	</array>
 </dict>
 </plist>
