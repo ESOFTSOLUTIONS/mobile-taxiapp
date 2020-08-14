@@ -397,7 +397,7 @@ PODS:
     - React-cxxreact (= 0.62.2)
     - React-jsi (= 0.62.2)
     - ReactCommon/callinvoker (= 0.62.2)
-  - RNDeviceInfo (5.6.3):
+  - RNDeviceInfo (5.6.4):
     - React
   - RNGestureHandler (1.6.1):
     - React
@@ -706,7 +706,7 @@ SPEC CHECKSUMS:
   React-RCTText: fae545b10cfdb3d247c36c56f61a94cfd6dba41d
   React-RCTVibration: 4356114dbcba4ce66991096e51a66e61eda51256
   ReactCommon: ed4e11d27609d571e7eee8b65548efc191116eb3
-  RNDeviceInfo: 5be12a5bfbb8da3528c43ee4373abd9c30d04616
+  RNDeviceInfo: a576aac2f2927eb7e0058a27dad811c8e7cd1474
   RNGestureHandler: 8f09cd560f8d533eb36da5a6c5a843af9f056b38
   RNReanimated: b5ccb50650ba06f6e749c7c329a1bc3ae0c88b43
   RNScreens: c526239bbe0e957b988dacc8d75ac94ec9cb19da
@@ -726,6 +726,6 @@ SPEC CHECKSUMS:
   Yoga: 3ebccbdd559724312790e7742142d062476b698e
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 96bb84d05d8a0ed7b068e462315d9f0e0a40bb00
+PODFILE CHECKSUM: cd33d15ee2c653e9fe28fb5c871d4a474479cbed
 
 COCOAPODS: 1.9.3
