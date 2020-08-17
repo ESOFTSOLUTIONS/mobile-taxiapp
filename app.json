@@ -17,7 +17,8 @@
         "UIBackgroundModes": [
           "location",
           "fetch"
-        ]
+        ],
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "entryPoint": "node_modules/expo/AppEntry.js"

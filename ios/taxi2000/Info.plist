@@ -37,8 +37,12 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Taxi2020 requires user’s location for better user experience.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Taxi2020 requires user’s location for better user experience.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>Taxi2020 requires user’s location for better user experience.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>external-accessory</string>
