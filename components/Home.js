@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
-import * as _ from "lodash"
 import * as Device from "expo-device";
 import * as Location from "expo-location";
 import * as TaskManager from 'expo-task-manager';
