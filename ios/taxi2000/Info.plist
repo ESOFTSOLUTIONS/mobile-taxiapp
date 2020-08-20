@@ -42,11 +42,11 @@
 		</dict>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Taxi2020 requires device location to show driver of cab in the map.</string>
+	<string>Taxi2020 requires device location to show driver of cab in the map. There is an administration panel where you will see current location.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Taxi2020 requires device location to show driver of cab in the map.</string>
+	<string>Taxi2020 requires device location to show driver of cab in the map. There is an administration panel where you will see current location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Taxi2020 requires device location to show driver of cab in the map.</string>
+	<string>Taxi2020 requires device location to show driver of cab in the map. There is an administration panel where you will see current location.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
