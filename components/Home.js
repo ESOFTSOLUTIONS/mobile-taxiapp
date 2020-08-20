@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Text, View, TouchableOpacity, StyleSheet, Image } from "react-native";
-import * as _ from "lodash"
 import * as Device from "expo-device";
 import * as Location from "expo-location";
 import * as TaskManager from 'expo-task-manager';
@@ -33,7 +32,7 @@ export default class Home extends Component {
   locationSettings = {
     accuracy: Location.Accuracy.BestForNavigation,
     timeInterval: 10000,
-    distanceInterval: 5, // 10 meters distance
+    distanceInterval: 1, // 10 meters distance
   };
 
 
@@ -84,12 +83,12 @@ export default class Home extends Component {
   async getLastDeviceData(currentLocation) {
     const deviceType = await Device.getDeviceTypeAsync();
     
-    const prevState = {...this.state};
+    // const prevState = {...this.state};
     
     // store current location
     this.setState({ location: currentLocation.coords, fetchTime: +new Date() });
     
-    const offline = this._checkPreviousLocTime(prevState);
+    // const offline = this._checkPreviousLocTime(prevState);
 
     return Promise.resolve({... {
       driverId: DeviceInfo.getUniqueId(),
@@ -101,7 +100,7 @@ export default class Home extends Component {
       lng: currentLocation.coords.longitude,
       accuracy: currentLocation.coords.accuracy,
       speed: currentLocation.coords.speed,
-      offline,
+      offline: false,
       background: false,
       fetchTime: +new Date() // timestamp
     }});
@@ -189,6 +188,9 @@ export default class Home extends Component {
   }
 };
 
+/**
+ * TASK FOR BACKGROUND FETCH DATA
+ */
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
   if (error) {
     // Error occurred - check `error.message` for more details.
@@ -201,8 +203,10 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     const home = new Home();
     // get current location
      home.getLastDeviceData(locations[locations.length - 1]).then(lastDeviceData => {
-      lastDeviceData['background'] = true;
-      callAPI(lastDeviceData);
+       if (lastDeviceData) {
+         lastDeviceData['background'] = true;
+         callAPI(lastDeviceData);
+       }
     });
   }
 });
