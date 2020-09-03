@@ -11,7 +11,7 @@ import { callAPI } from "../actions/actions";
 const AppLogo = require('~/../../assets/img/logo.png');
 const AppName = 'Taxi 2020';
 const DeviceId = Device.deviceName;
-const LOCATION_TASK = 'background-location-driver';
+const LOCATION_TASK = 'background-location-driver-x';
 
 export default class Home extends Component {
   lastTime = +new Date();
@@ -22,8 +22,7 @@ export default class Home extends Component {
     this.state = {
       driverId: '',
       location: { latitude: 0, longitude: 0 },
-      fetchTime: initTime,
-      deviceOnline: true
+      fetchTime: initTime
     }
   }
 
@@ -31,10 +30,10 @@ export default class Home extends Component {
 
   locationSettings = {
     accuracy: Location.Accuracy.BestForNavigation,
-    timeInterval: 10000,
-    distanceInterval: 1, // 10 meters distance
+    enableHighAccuracy: true,
+    timeInterval: 20000,
+    distanceInterval: 2, // 2 meters distance
   };
-
 
   componentDidMount() {
     // get current device id
@@ -45,17 +44,15 @@ export default class Home extends Component {
 
       // enable network to correct location
       Location.enableNetworkProviderAsync().then(() => {
-        this.setState({ deviceOnline: true });
         this.watchLocation();
       })
       .catch(err => {
         alert(JSON.stringify(err));
-      })    
+      })
     });
 
     Location.hasServicesEnabledAsync().then(isOnline => {
       if (!isOnline && this.lastDeviceData) {
-        this.setState({ deviceOnline: false });
         callAPI(this.lastDeviceData);
       }
     })
@@ -65,30 +62,28 @@ export default class Home extends Component {
     Location.watchPositionAsync(this.locationSettings, async (currentLocation) => {
       // get current location
       this.lastDeviceData = await this.getLastDeviceData(currentLocation)
-      
+
       // call api
       callAPI(this.lastDeviceData);
     });
 
   }
 
-  async getLocation() {    
+  async getLocation() {
     const hasTask = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
 
     if (!hasTask) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK, this.locationSettings);
-    }    
+    }
   }
 
   async getLastDeviceData(currentLocation) {
     const deviceType = await Device.getDeviceTypeAsync();
-    
+
     // const prevState = {...this.state};
-    
+
     // store current location
     this.setState({ location: currentLocation.coords, fetchTime: +new Date() });
-    
-    // const offline = this._checkPreviousLocTime(prevState);
 
     return Promise.resolve({... {
       driverId: DeviceInfo.getUniqueId(),
@@ -109,7 +104,7 @@ export default class Home extends Component {
   async askPermissions() {
     // ask for permissions
     let response = await Location.getPermissionsAsync();
-    
+
     if (!response.granted) {
       let reqRes = await Location.requestPermissionsAsync();
 
@@ -119,39 +114,13 @@ export default class Home extends Component {
       }
     }
   }
-  
+
   _onBusyPress(data) {
     //
   }
 
   _onAvailPress(data) {
     //
-  }
-
-  _checkPreviousLocTime(prevState) {
-    const decimalLen = 8;
-    const currLat = String(this.state.location.latitude).substring(0, decimalLen);
-    const prevLat = String(prevState.location.latitude).substring(0, decimalLen);
-  
-    const currLng = String(this.state.location.longitude).substring(0, decimalLen);
-    const prevLng = String(prevState.location.longitude).substring(0, decimalLen);
-
-    const timeDiff = this.state.fetchTime - this.lastTime;
-    
-    let offline = false;
-  
-    if (currLat === prevLat && currLng === prevLng) {
-      offline = true;
-      if (timeDiff > 60) {
-        this.setState({ deviceOnline: false });
-      }
-    } else if (!this.state.deviceOnline) {
-      offline = false;
-      this.setState({ deviceOnline: true });
-      this.lastTime = +new Date();
-    }
-
-    return offline;
   }
 
   render() {
@@ -167,7 +136,7 @@ export default class Home extends Component {
         >
         <Text style={styles.buttonTitle}>Taxi e Zene</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={ ($event) => { this._onAvailPress($event) } }
           style={[styles.button, { backgroundColor: "#10ac84" }]}>
           <Text style={styles.buttonTitle}>Taxi e Lire</Text>
@@ -260,5 +229,5 @@ const styles = StyleSheet.create({
   appLogo: {
     width: 200
   }
-  
+
 });
